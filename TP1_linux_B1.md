@@ -26,7 +26,7 @@ System.map-5.14.0-70.13.1.el9_0.x86_64
 ⭐vmlinuz-0-rescue-3433e2fe435a4886bc957150da17bbff⭐
 ⭐vmlinuz-5.14.0-70.13.1.el9_0.x86_64⭐
 ```
-```
+
 ```
 [vincent@localhost boot]$ ⭐sudo rm vmlinuz-0-rescue-3433e2fe435a4886bc957150da17bbff⭐
 [sudo] password for vincent:
