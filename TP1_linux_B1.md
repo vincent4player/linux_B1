@@ -23,16 +23,12 @@ initramfs-5.14.0-70.13.1.el9_0.x86_64.img
 loader
 symvers-5.14.0-70.13.1.el9_0.x86_64.gz
 System.map-5.14.0-70.13.1.el9_0.x86_64
-vmlinuz-0-rescue-3433e2fe435a4886bc957150da17bbff
-vmlinuz-5.14.0-70.13.1.el9_0.x86_64
+⭐vmlinuz-0-rescue-3433e2fe435a4886bc957150da17bbff⭐
+⭐vmlinuz-5.14.0-70.13.1.el9_0.x86_64⭐
 ```
 ```
-[vincent@localhost boot]$ rm vmlinuz-0-rescue-3433e2fe435a4886bc957150da17bbff
-rm: remove write-protected regular file 'vmlinuz-0-rescue-3433e2fe435a4886bc957150da17bbff'? yes
-rm: cannot remove 'vmlinuz-0-rescue-3433e2fe435a4886bc957150da17bbff': Permission denied
 ```
-```
-[vincent@localhost boot]$ sudo rm vmlinuz-0-rescue-3433e2fe435a4886bc957150da17bbff
+[vincent@localhost boot]$ ⭐sudo rm vmlinuz-0-rescue-3433e2fe435a4886bc957150da17bbff⭐
 [sudo] password for vincent:
 ```
 ```
@@ -44,7 +40,7 @@ initramfs-0-rescue-3433e2fe435a4886bc957150da17bbff.img  vmlinuz-5.14.0-70.13.1.
 initramfs-5.14.0-70.13.1.el9_0.x86_64.img
 ```
 ```
-[vincent@localhost boot]$ sudo rm vmlinuz-5.14.0-70.13.1.el9_0.x86_64
+[vincent@localhost boot]$ ⭐sudo rm vmlinuz-5.14.0-70.13.1.el9_0.x86_64⭐
 ```
 ```
 [vincent@localhost boot]$ ls
@@ -128,7 +124,7 @@ tcpdump:x:72:72::/:/usr/sbin/nologin
 ```
 ```
 [vincent@localhost ~]$ su - testuser
-su: user testuser does not exist or the user entry does not contain all the required fields
+⭐su: user testuser does not exist or the user entry does not contain all the required fields⭐
 [vincent@localhost ~]$
 ```
 
@@ -164,7 +160,7 @@ dd: error writing '/dev/mapper/rl-root': No space left on device
 18249416704 bytes (18 GB, 17 GiB) copied, 91.6934 s, 199 MB/s
 Segmentation fault
 [vincent@localhost ~]$ df -h
--bash: /usr/bin/df: Input/output error
+⭐-bash: /usr/bin/df: Input/output error⭐
 ```
 
 5. Malware
