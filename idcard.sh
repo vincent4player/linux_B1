@@ -72,3 +72,10 @@ echo
 display_section "PATH_directories"
 echo $PATH | tr ':' '\n' | awk '{print " - " $1}'
 echo
+
+# "Lien vers une image"
+display_section "link to a random cat image"
+json_data=$(curl -s "https://api.thecatapi.com/v1/images/search")
+url=$(echo "$json_data" | grep -o '"url":"[^"]*"' | cut -d '"' -f 4)
+echo "$url"
+echo
