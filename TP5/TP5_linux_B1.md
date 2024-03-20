@@ -1,7 +1,5 @@
 
-
-
-Partie 1 : Script carte d'identité
+Partie 1 : Script carte d'identité.
 
 ```
 [vincent@localhost srv]$ sudo mkdir idcard
@@ -13,6 +11,7 @@ idcard  test.sh
 [vincent@localhost idcard]$ ls
 idcard.sh
 ```
+
 ```
 =============================
 Machine-name
@@ -89,126 +88,105 @@ https://cdn2.thecatapi.com/images/MTczMDk2Nw.jpg
 ```
 
 
-Rendu
-📁 Fichier /srv/idcard/idcard.sh
-🌞 Vous fournirez dans le compte-rendu Markdown, en plus du fichier, un exemple d'exécution avec une sortie
+II. Script youtube-dl
 
 
 
+voir yt.sh
+```
+[vincent@TP5linuxB1 yt]$ /srv/yt/yt.sh "https://www.youtube.com/watch?v=jBdTpDCs7X0"
+Téléchargement réussi: L’entreprise qui détrône Google et bouleverse l’humanité (Nvidia)
+Lien de la vidéo: https://www.youtube.com/watch?v=jBdTpDCs7X0
+Le fichier est stocké dans: /srv/yt/downloads/L’entreprise qui détrône Google et bouleverse l’humanité (Nvidia)/L’entreprise qui détrône Google et bouleverse l’humanité (Nvidia).mp4
+[vincent@TP5linuxB1 yt]$
+```
 
-1. Premier script youtube-dl
-
-
-B. Rendu attendu
-📁 Le script /srv/yt/yt.sh
-📁 Le fichier de log /var/log/yt/download.log, avec au moins quelques lignes
-🌞 Vous fournirez dans le compte-rendu, en plus du fichier, un exemple d'exécution avec une sortie
-
-comme pour le script précédent : juste tu le lances, et tu cme copie/colles ça dans le rendu
-
+logs:
+```
+[24/03/20 10:56:38] Video https://www.youtube.com/watch?v=jBdTpDCs7X0 was downloaded. File path : /srv/yt/downloads/L’entreprise qui détrône Google et bouleverse l’humanité (Nvidia)/L’entreprise qui détrône Google et bouleverse l’humanité (Nvidia).mp4
+[24/03/20 11:00:42] Video https://www.youtube.com/watch?v=jBdTpDCs7X0 was downloaded. File path : /srv/yt/downloads/L’entreprise qui détrône Google et bouleverse l’humanité (Nvidia)/L’entreprise qui détrône Google et bouleverse l’humanité (Nvidia).mp4
+[24/03/20 11:02:21] Video https://www.youtube.com/watch?v=XzwhZfw2gUo was downloaded. File path : /srv/yt/downloads/Le plan de Poutine, la réponse à Emmanuel Macron/Le plan de Poutine, la réponse à Emmanuel Macron.mp4
+[24/03/20 11:03:02] Video https://www.youtube.com/watch?v=jUz0MKf0RJs was downloaded. File path : /srv/yt/downloads/La France est-elle encore une grande puissance  (Mappemonde Ep. 7, avec François Hollande)/La France est-elle encore une grande puissance  (Mappemonde Ep. 7, avec François Hollande).mp4
+```
 
 2. MAKE IT A SERVICE
 
-A. Adaptation du script
-YES. Yet again. On va en faire un service.
-L'idée :
-➜ plutôt que d'appeler la commande à la main quand on veut télécharger une vidéo, on va créer un service qui les téléchargera pour nous
-➜ le service s'exécute en permanence en tâche de fond
+```
+[vincent@TP5linuxB1 yt]$ sudo nano /etc/systemd/system/yt.service
+[vincent@TP5linuxB1 yt]$ sudo systemctl daemon-reload
+[vincent@TP5linuxB1 yt]$ systemctl status yt
+○ yt.service - Téléchargement de vidéos YouTube en batch
+     Loaded: loaded (/etc/systemd/system/yt.service; disabled; vendor preset: disabled)
+     Active: inactive (dead)
+[vincent@TP5linuxB1 yt]$ sudo systemctl start yt
+[vincent@TP5linuxB1 yt]$ systemctl status yt
+● yt.service - Téléchargement de vidéos YouTube en batch
+     Loaded: loaded (/etc/systemd/system/yt.service; disabled; vendor preset: disabled)
+     Active: active (running) since Wed 2024-03-20 11:33:25 CET; 6s ago
+   Main PID: 1485 (yt-v2.sh)
+      Tasks: 2 (limit: 5896)
+     Memory: 632.0K
+        CPU: 7ms
+     CGroup: /system.slice/yt.service
+             ├─1485 /bin/bash /srv/yt/yt-v2.sh
+             └─1486 sleep 60
 
-il surveille un fichier précis
-s'il trouve une nouvelle ligne dans le fichier, il vérifie que c'est bien une URL de vidéo youtube
+Mar 20 11:33:25 TP5linuxB1 systemd[1]: Started Téléchargement de vidéos YouTube en batch.
+[vincent@TP5linuxB1 yt]$ sudo systemctl stop yt
+[vincent@TP5linuxB1 yt]$
 
-si oui, il la télécharge, puis enlève la ligne
-sinon, il enlève juste la ligne
-
-
-
-➜ qui écrit dans le fichier pour ajouter des URLs ? Bah vous !
-
-vous pouvez écrire une liste d'URL, une par ligne, et le service devra les télécharger une par une
-
-
-Pour ça, procédez par étape :
-
-
-partez de votre script précédent (gardez une copie propre du premier script, qui doit être livré dans le dépôt git)
-
-le nouveau script s'appellera yt-v2.sh
-
-
-
-
-adaptez-le pour qu'il lise les URL dans un fichier plutôt qu'en argument sur la ligne de commande
-
-faites en sorte qu'il tourne en permanence, et vérifie le contenu du fichier toutes les X secondes
-
-boucle infinie qui :
-
-lit un fichier
-effectue des actions si le fichier n'est pas vide
-sleep pendant une durée déterminée
-
-
-
-
-
-il doit marcher si on précise une vidéo par ligne
-
-il les télécharge une par une
-et supprime les lignes une par une
-
-
-
-
-B. Le service
-➜ une fois que tout ça fonctionne, enfin, créez un service qui lance votre script :
-
-créez un fichier /etc/systemd/system/yt.service. Il comporte :
-
-une brève description
-un ExecStart pour indiquer que ce service sert à lancer votre script
-une clause User= pour indiquer que c'est l'utilisateur yt qui lance le script
-
-créez l'utilisateur s'il n'existe pas
-faites en sorte que le dossier /srv/yt et tout son contenu lui appartienne
-le dossier de log doit lui appartenir aussi
-l'utilisateur yt ne doit pas pouvoir se connecter sur la machine
-
-
-
-
-
-
-[Unit]
-Description=<Votre description>
-
-[Service]
-ExecStart=<Votre script>
-User=yt
-
-[Install]
-WantedBy=multi-user.target
-
-
-
-Pour rappel, après la moindre modification dans le dossier /etc/systemd/system/, vous devez exécuter la commande sudo systemctl daemon-reload pour dire au système de lire les changements qu'on a effectué.
-
-Vous pourrez alors interagir avec votre service à l'aide des commandes habituelles systemctl :
-
-systemctl status yt
-sudo systemctl start yt
-sudo systemctl stop yt
-
-
-
-C. Rendu
-📁 Le script /srv/yt/yt-v2.sh
-📁 Fichier /etc/systemd/system/yt.service
-🌞 Vous fournirez dans le compte-rendu, en plus des fichiers :
-
-un systemctl status yt quand le service est en cours de fonctionnement
-un extrait de journalctl -xe -u yt
-
-
-
-Hé oui les commandes journalctl fonctionnent sur votre service pour voir les logs ! Et vous devriez constater que c'est vos echo qui pop. En résumé, le STDOUT de votre script, c'est devenu les logs du service !
+[vincent@TP5linuxB1 yt]$ journalctl -xe -u yt
+~
+~
+~
+~
+~
+~
+~
+~
+~
+~
+~
+~
+~
+~
+Mar 20 11:33:25 TP5linuxB1 systemd[1]: Started Téléchargement de vidéos YouTube en batch.
+░░ Subject: A start job for unit yt.service has finished successfully
+░░ Defined-By: systemd
+░░ Support: https://access.redhat.com/support
+░░
+░░ A start job for unit yt.service has finished successfully.
+░░
+░░ The job identifier is 1157.
+Mar 20 11:33:48 TP5linuxB1 systemd[1]: Stopping Téléchargement de vidéos YouTube en batch...
+░░ Subject: A stop job for unit yt.service has begun execution
+░░ Defined-By: systemd
+░░ Support: https://access.redhat.com/support
+░░
+░░ A stop job for unit yt.service has begun execution.
+░░
+░░ The job identifier is 1243.
+Mar 20 11:33:48 TP5linuxB1 systemd[1]: yt.service: Deactivated successfully.
+░░ Subject: Unit succeeded
+░░ Defined-By: systemd
+░░ Support: https://access.redhat.com/support
+░░
+░░ The unit yt.service has successfully entered the 'dead' state.
+Mar 20 11:33:48 TP5linuxB1 systemd[1]: Stopped Téléchargement de vidéos YouTube en batch.
+░░ Subject: A stop job for unit yt.service has finished
+░░ Defined-By: systemd
+░░ Support: https://access.redhat.com/support
+░░
+░░ A stop job for unit yt.service has finished.
+░░
+░░ The job identifier is 1243 and the job result is done.
+Mar 20 11:39:23 TP5linuxB1 systemd[1]: Started Téléchargement de vidéos YouTube en batch.
+░░ Subject: A start job for unit yt.service has finished successfully
+░░ Defined-By: systemd
+░░ Support: https://access.redhat.com/support
+░░
+░░ A start job for unit yt.service has finished successfully.
+░░
+░░ The job identifier is 1244.
+[vincent@TP5linuxB1 yt]$
+```
