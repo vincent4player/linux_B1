@@ -390,29 +390,256 @@ mysql>
 
 🌞 Trouver une commande SQL qui permet de lister tous les utilisateurs de la base de données
 
+```
+[vincent@db ~]$ sudo mysql -u root -p
+[sudo] password for vincent:
+Enter password:
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 8
+Server version: 10.5.22-MariaDB MariaDB Server
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]> SELECT User, Host FROM mysql.user;
++-------------+-----------+
+| User        | Host      |
++-------------+-----------+
+| nextcloud   | 10.6.1.11 |
+| mariadb.sys | localhost |
+| mysql       | localhost |
+| root        | localhost |
++-------------+-----------+
+4 rows in set (0.184 sec)
+
+MariaDB [(none)]> MariaDB [(none)]> GRANT ALL PRIVILEGES ON *.* TO 'root'@'10.6.1.11' IDENTIFIED BY 'root' WITH GRANT OPTION;
+Query OK, 0 rows affected (0.091 sec)
+```
+```
+[vincent@web ~]$ mysql -u root -h 10.6.1.12 -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 10
+Server version: 5.5.5-10.5.22-MariaDB MariaDB Server
+
+Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> SELECT User, Host FROM mysql.user;
++-------------+-----------+
+| User        | Host      |
++-------------+-----------+
+| nextcloud   | 10.6.1.11 |
+| root        | 10.6.1.11 |
+| mariadb.sys | localhost |
+| mysql       | localhost |
+| root        | localhost |
++-------------+-----------+
+5 rows in set (0.00 sec)
+
+mysql>
+```
 
 
 🌞 Install de PHP
 
+```
+[vincent@web ~]$ sudo dnf install php
+[vincent@web ~]$ php -v
+PHP 8.0.30 (cli) (built: Aug  3 2023 17:13:08) ( NTS gcc x86_64 )
+Copyright (c) The PHP Group
+Zend Engine v4.0.30, Copyright (c) Zend Technologies
+    with Zend OPcache v8.0.30, Copyright (c), by Zend Technologies
+[vincent@web ~]$
+```
+```
+[vincent@web ~]$ sudo nano /etc/httpd/conf/httpd.conf
+[sudo] password for vincent:
+ServerRoot "/etc/httpd"
+
+Listen 80
+
+Include conf.modules.d/*.conf
+
+User apache
+Group apache
+
+
+ServerAdmin root@localhost
+```
+```
+[vincent@web ~]$ sudo firewall-cmd --permanent --add-port=80/tcp
+success
+[vincent@web ~]$ sudo firewall-cmd --permanent --remove-service=http
+Warning: NOT_ENABLED: http
+success
+[vincent@web ~]$ sudo firewall-cmd --permanent --add-port=80/tcp
+Warning: ALREADY_ENABLED: 80:tcp
+success
+[vincent@web ~]$ sudo firewall-cmd --reload
+success
+```
+```
+[vincent@web ~]$ sudo systemctl restart httpd
+[vincent@web ~]$ sudo systemctl status httpd
+● httpd.service - The Apache HTTP Server
+     Loaded: loaded (/usr/lib/systemd/system/httpd.service; enabled; preset: disabled)
+     Active: active (running) since Mon 2024-03-25 20:02:21 CET; 4s ago
+       Docs: man:httpd.service(8)
+   Main PID: 43933 (httpd)
+     Status: "Started, listening on: port 80"
+      Tasks: 213 (limit: 5896)
+     Memory: 23.2M
+        CPU: 59ms
+     CGroup: /system.slice/httpd.service
+             ├─43933 /usr/sbin/httpd -DFOREGROUND
+             ├─43934 /usr/sbin/httpd -DFOREGROUND
+             ├─43935 /usr/sbin/httpd -DFOREGROUND
+             ├─43936 /usr/sbin/httpd -DFOREGROUND
+             └─43937 /usr/sbin/httpd -DFOREGROUND
+
+Mar 25 20:02:20 web.tp6.linux systemd[1]: Starting The Apache HTTP Server...
+Mar 25 20:02:21 web.tp6.linux systemd[1]: Started The Apache HTTP Server.
+Mar 25 20:02:21 web.tp6.linux httpd[43933]: Server configured, listening on: port 80
+[vincent@web ~]$
+```
 
 
 🌞 Récupérer NextCloud
 
+```
+[vincent@web ~]$ sudo mkdir -p /var/www/tp6_nextcloud/
+[vincent@web ~]$ sudo dnf install wget
+[vincent@web ~]$ sudo wget https://download.nextcloud.com/server/releases/latest.zip -P /var/www/tp6_nextcloud/
+--2024-03-25 20:10:11--  https://download.nextcloud.com/server/releases/latest.zip
+Resolving download.nextcloud.com (download.nextcloud.com)... 5.9.202.145, 2a01:4f8:210:21c8::145
+Connecting to download.nextcloud.com (download.nextcloud.com)|5.9.202.145|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 220492795 (210M) [application/zip]
+Saving to: ‘/var/www/tp6_nextcloud/latest.zip’
+
+latest.zip                100%[===================================>] 210.28M   268KB/s    in 4m 26s
+
+2024-03-25 20:14:38 (810 KB/s) - ‘/var/www/tp6_nextcloud/latest.zip’ saved [220492795/220492795]
+
+[vincent@web ~]$
+```
+```
+[vincent@web tp6_nextcloud]$ ls
+latest.zip  nextcloud
+[vincent@web tp6_nextcloud]$ cd nextcloud/
+[vincent@web nextcloud]$ cd ..
+[vincent@web tp6_nextcloud]$ sudo mv nextcloud/* ./
+[sudo] password for vincent:
+[vincent@web tp6_nextcloud]$ cd nextcloud/
+[vincent@web nextcloud]$ ls -la
+total 4
+drwxr-xr-x.  2 root root    6 Mar 25 20:25 .
+drwxr-xr-x. 14 root root 4096 Mar 25 20:25 ..
+[vincent@web nextcloud]$ cd ..
+[vincent@web tp6_nextcloud]$ sudo rmdir nextcloud
+[vincent@web tp6_nextcloud]$
+```
+```
+[vincent@web tp6_nextcloud]$ sudo chown -R apache:apache /var/www/tp6_nextcloud/
+[vincent@web tp6_nextcloud]$
+```
+```
+[vincent@web tp6_nextcloud]$ ls -al /var/www/tp6_nextcloud/
+total 216520
+drwxr-xr-x. 13 apache apache      4096 Mar 25 20:26 .
+drwxr-xr-x.  5 root   root          54 Mar 25 20:07 ..
+drwxr-xr-x. 44 apache apache      4096 Feb 29 08:49 3rdparty
+drwxr-xr-x. 50 apache apache      4096 Feb 29 08:47 apps
+-rw-r--r--.  1 apache apache     23796 Feb 29 08:46 AUTHORS
+-rw-r--r--.  1 apache apache      1906 Feb 29 08:46 composer.json
+-rw-r--r--.  1 apache apache      3140 Feb 29 08:46 composer.lock
+drwxr-xr-x.  2 apache apache        67 Feb 29 08:49 config
+-rw-r--r--.  1 apache apache      4124 Feb 29 08:46 console.php
+-rw-r--r--.  1 apache apache     34520 Feb 29 08:46 COPYING
+drwxr-xr-x. 24 apache apache      4096 Feb 29 08:49 core
+-rw-r--r--.  1 apache apache      6317 Feb 29 08:46 cron.php
+drwxr-xr-x.  2 apache apache     12288 Feb 29 08:46 dist
+-rw-r--r--.  1 apache apache      3993 Feb 29 08:46 .htaccess
+-rw-r--r--.  1 apache apache       156 Feb 29 08:46 index.html
+-rw-r--r--.  1 apache apache      4403 Feb 29 08:46 index.php
+-rw-r--r--.  1 apache apache 220492795 Feb 29 08:52 latest.zip
+drwxr-xr-x.  6 apache apache       125 Feb 29 08:46 lib
+-rw-r--r--.  1 apache apache       283 Feb 29 08:46 occ
+drwxr-xr-x.  2 apache apache        55 Feb 29 08:46 ocs
+drwxr-xr-x.  2 apache apache        23 Feb 29 08:46 ocs-provider
+-rw-r--r--.  1 apache apache      7072 Feb 29 08:46 package.json
+-rw-r--r--.  1 apache apache   1044055 Feb 29 08:46 package-lock.json
+-rw-r--r--.  1 apache apache      3187 Feb 29 08:46 public.php
+-rw-r--r--.  1 apache apache      5597 Feb 29 08:46 remote.php
+drwxr-xr-x.  4 apache apache       133 Feb 29 08:46 resources
+-rw-r--r--.  1 apache apache        26 Feb 29 08:46 robots.txt
+-rw-r--r--.  1 apache apache      2452 Feb 29 08:46 status.php
+drwxr-xr-x.  3 apache apache        35 Feb 29 08:46 themes
+drwxr-xr-x.  2 apache apache        43 Feb 29 08:47 updater
+-rw-r--r--.  1 apache apache       101 Feb 29 08:46 .user.ini
+-rw-r--r--.  1 apache apache       403 Feb 29 08:49 version.php
+```
 
 🌞 Adapter la configuration d'Apache
 
+```
+[vincent@web tp6_nextcloud]$ sudo tail -n 5 /etc/httpd/conf/httpd.conf
 
+
+EnableSendfile on
+
+🌞IncludeOptional conf.d/*.conf🌞
+[vincent@web tp6_nextcloud]$
+```
+```
+[vincent@web tp6_nextcloud]$ sudo nano /etc/httpd/conf.d/nextcloud.conf
+[vincent@web tp6_nextcloud]$ sudo cat /etc/httpd/conf.d/nextcloud.conf
+<VirtualHost *:80>
+  DocumentRoot /var/www/tp6_nextcloud/
+  ServerName web.tp6.linux
+
+  <Directory /var/www/tp6_nextcloud/>
+    Require all granted
+    AllowOverride All
+    Options FollowSymLinks MultiViews
+    <IfModule mod_dav.c>
+      Dav off
+    </IfModule>
+  </Directory>
+</VirtualHost>
+[vincent@web tp6_nextcloud]$
+```
 
 🌞 Redémarrer le service Apache pour qu'il prenne en compte le nouveau fichier de conf
-
-
-
+```
+[vincent@web tp6_nextcloud]$ sudo systemctl restart httpd
+[vincent@web tp6_nextcloud]$ sudo apachectl configtest
+Syntax OK
+[vincent@web tp6_nextcloud]$
+```
 
 🌞 Installez les deux modules PHP dont NextCloud vous parle
 
+```
+[vincent@web tp6_nextcloud]$ sudo dnf install php-zip php-gd
+[sudo] password for vincent:
+[vincent@web tp6_nextcloud]$ sudo systemctl restart httpd
+[vincent@web tp6_nextcloud]$
+```
 
 🌞 Pour que NextCloud utilise la base de données, ajoutez aussi
 
+```
+[vincent@web tp6_nextcloud]$ sudo dnf install php-pdo php-mysqlnd
+[vincent@web tp6_nextcloud]$ sudo systemctl restart httpd
+```
 
 🌞 Exploration de la base de données
 
